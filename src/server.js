@@ -3,6 +3,7 @@ import cors from "cors";
 import listEndpoints from "express-list-endpoints";
 import { pgConnect, syncModels } from "./database.js";
 import productRouter from "./api/product/index.js";
+import { ReviewRouter } from "./api/product/index.js";
 import {
   badRequestErrorHandler,
   forbiddenErrorHandler,
@@ -17,7 +18,7 @@ const port = process.env.PORT || 3001;
 server.use(cors());
 server.use(express.json());
 
-server.use("/product", productRouter);
+server.use("/product", productRouter, ReviewRouter);
 
 server.use(badRequestErrorHandler);
 server.use(forbiddenErrorHandler);
