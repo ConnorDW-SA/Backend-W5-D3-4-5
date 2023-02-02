@@ -1,5 +1,8 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../../database.js";
+import CategoryModel from "../category/model.js";
+import ProductCategoryModel from "./ProductCategoryModel.js";
+import ReviewModel from "../review/model.js";
 
 const ProductModel = sequelize.define("product", {
   id: {
@@ -8,10 +11,6 @@ const ProductModel = sequelize.define("product", {
     defaultValue: DataTypes.UUIDV4
   },
   name: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-  category: {
     type: DataTypes.STRING,
     allowNull: false
   },
@@ -26,11 +25,25 @@ const ProductModel = sequelize.define("product", {
   price: {
     type: DataTypes.INTEGER,
     allowNull: false
-  },
-  reviews: {
-    type: DataTypes.ARRAY(DataTypes.JSONB),
-    defaultValue: []
   }
+});
+
+// Implement associations between Products and Reviews as one-to-many.
+
+ProductModel.hasMany(ReviewModel, { foreignKey: { allowNull: false } });
+ReviewModel.belongsTo(ProductModel);
+
+// Implement associations between User and Review as one-to-many.
+
+// Implement associations between Category and Product as many-to-many.
+
+ProductModel.belongsToMany(CategoryModel, {
+  through: ProductCategoryModel,
+  foreignKey: { name: "productId", allowNull: false }
+});
+CategoryModel.belongsToMany(ProductModel, {
+  through: ProductCategoryModel,
+  foreignKey: { name: "categoryId", allowNull: false }
 });
 
 export default ProductModel;
