@@ -30,7 +30,7 @@ const ProductModel = sequelize.define("product", {
 
 // Implement associations between Products and Reviews as one-to-many.
 
-ProductModel.hasMany(ReviewModel, { foreignKey: { allowNull: false } });
+ProductModel.hasMany(ReviewModel, { foreignKey: { name: "productId" } });
 ReviewModel.belongsTo(ProductModel);
 
 // Implement associations between User and Review as one-to-many.

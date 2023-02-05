@@ -25,7 +25,8 @@ ProductRouter.get("/", async (req, res, next) => {
           through: { attributes: [] }
         }
       ],
-      where: { ...query }
+      where: { ...query },
+      limit: 10
     });
     res.send(products);
   } catch (error) {
@@ -33,23 +34,32 @@ ProductRouter.get("/", async (req, res, next) => {
   }
 });
 
-ProductRouter.get("/", async (req, res, next) => {
+ProductRouter.get("/id", async (req, res, next) => {
   try {
-    const query = {};
-    if (req.query.product)
-      query.product = { [Op.iLike]: `${req.query.product}%` };
-    const products = await ProductModel.findAll({
+    const product = await ProductModel.findByPk(req.params.id, {
+      attributes: { exclude: ["createdAt", "updatedAt"] },
       include: [
-        { model: ReviewModel, attributes: ["comment", "rate"] },
+        {
+          model: ReviewModel,
+          include: [{ model: UserModel }],
+          attributes: ["comment", "rate"]
+        },
         {
           model: CategoryModel,
           attributes: ["name"],
           through: { attributes: [] }
         }
       ],
-      where: { ...query }
+      where: { ...query },
+      limit: 10
     });
-    res.send(products);
+    if (product) {
+      res.send(product);
+    } else {
+      next(
+        createHttpError(404, `Product with id ${req.params.id} not found! `)
+      );
+    }
   } catch (error) {
     next(error);
   }
@@ -95,6 +105,62 @@ ProductRouter.delete("/:id", async (req, res, next) => {
     } else {
       next(createHttpError(404, "Product not found"));
     }
+  } catch (error) {
+    next(error);
+  }
+});
+
+//---------------------
+
+ProductRouter.put("/:id/category", async (req, res, next) => {
+  try {
+    const { id } = await ProductCategoryModel.create({
+      productId: req.params.id,
+      categoryId: req.body.categoryId
+    });
+    res.status(201).send({ id });
+  } catch (error) {
+    next(error);
+  }
+});
+
+ProductRouter.post("/:id/:userId/cart", async (req, res, next) => {
+  try {
+    const cartNow = await CartModel.findAll({
+      where: {
+        [Op.and]: [{ id: req.params.userId }, { status: "active" }]
+      }
+    });
+    if (cartNow.length > 0) {
+      await CartModel.create({ id: req.params.userId, status: "active" });
+    }
+    const productNow = await ProductCartModel.findAll({
+      where: {
+        [Op.and]: [{ id: req.params.id }, { cartId: cartNow[0].dataValues.id }]
+      }
+    });
+
+    if (productNow.length == 0) {
+      await ProductCartModel.create({
+        ...req.body,
+        cartId: cartNow[0].dataValues.id,
+        id: req.params.id
+      });
+    } else {
+      await ProductCartModel.update(
+        { quantity: req.body.quantity + productNow[0].dataValues.quantity },
+        {
+          where: {
+            [Op.and]: [
+              { id: req.params.id },
+              { cartId: cartNow[0].dataValues.id }
+            ]
+          },
+          returning: true
+        }
+      );
+    }
+    res.status(201).send();
   } catch (error) {
     next(error);
   }
