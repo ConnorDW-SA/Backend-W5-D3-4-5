@@ -1,7 +1,6 @@
 import express from "express";
 import createHttpError from "http-errors";
 import { Op } from "sequelize";
-import ProductModel from "../product/model.js";
 import UserModel from "./model.js";
 
 const UserRouter = express.Router();
@@ -22,7 +21,7 @@ UserRouter.get("/", async (req, res, next) => {
 
 UserRouter.get("/:id", async (req, res, next) => {
   try {
-    const user = await UsersModel.findByPk(req.params.id, {
+    const user = await UserModel.findByPk(req.params.id, {
       attributes: { exclude: ["createdAt", "updatedAt"] }
     });
     if (!user) {

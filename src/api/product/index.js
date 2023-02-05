@@ -5,6 +5,9 @@ import ProductModel from "./model.js";
 import ProductCategoryModel from "./ProductCategoryModel.js";
 import CategoryModel from "../category/model.js";
 import ReviewModel from "../review/model.js";
+import CartModel from "./CartModel.js";
+import ProductCartModel from "./ProductCartModel.js";
+import UserModel from "../user/model.js";
 
 const ProductRouter = express.Router();
 

@@ -32,9 +32,10 @@ ReviewRouter.get("/:id", async (req, res, next) => {
   }
 });
 
-ReviewRouter.post("/", async (req, res, next) => {
+ReviewRouter.post("/id/review", async (req, res, next) => {
   try {
-    const { id } = await ReviewModel.create(req.body);
+    const review = { ...req.body, productId: req.params.id };
+    const { id } = await ReviewModel.create(review);
     res.status(201).send({ id });
   } catch (error) {
     next(error);
